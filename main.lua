@@ -63,7 +63,7 @@ function love.draw()
     for i, v in ipairs(theVenusProject) do
         love.graphics.draw(
             v.texture,
-            v.x + v.xMag * math.cos(v.xOff + v.xSpeed * theVenusProject.time) + 32,
+            v.x + v.xMag * math.cos(v.xOff + v.xSpeed * theVenusProject.time) + 30,
             v.y + v.yMag * math.cos(v.yOff + v.ySpeed * theVenusProject.time) + 32,
             v.rot + v.rotMag * math.cos(v.rotOff + v.rotSpeed * theVenusProject.time),
             v.scale, v.scale,
