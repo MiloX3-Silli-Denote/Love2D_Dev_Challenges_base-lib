@@ -75,6 +75,48 @@ function DepthDrawing.init()
             self.applyTransformation();
         end
     end
+    local function mouseGetPositionAppend(x, y)
+        if not self.enabled then
+            return x, y;
+        end
+
+        return self.getWorldPointFromScreenPoint(x, y);
+    end
+    local function mouseGetXAppend(x)
+        if not self.enabled then
+            return x;
+        end
+
+        return (self.getWorldPointFromScreenPoint(x, 0));
+    end
+    local function mouseGetYAppend(y)
+        if not self.enabled then
+            return y;
+        end
+
+        local _x, _y = self.getWorldPointFromScreenPoint(0, y);
+
+        return _y;
+    end
+    local function mousemovedInject(x, y, dx, dy, istouch)
+        if not self.enabled then
+            return;
+        end
+
+        x,  y  = self.getWorldPointFromScreenPoint(x,  y);
+        dx, dy = self.getWorldDeltaFromScreenDelta(dx, dy);
+
+        return x, y, dx, dy, istouch;
+    end
+    local function mousepressedInject(x, y, button, istouch, presses)
+        if not self.enabled then
+            return;
+        end
+
+        x, y = self.getWorldPointFromScreenPoint(x, y);
+
+        return x, y, button, istouch, presses;
+    end
 
     -- have the draw calls cause an error if not drawing to the depth buffer
     LoveAffix.makeFunctionInjectable("graphics", "arc");
@@ -90,6 +132,12 @@ function DepthDrawing.init()
     LoveAffix.makeFunctionInjectable("graphics", "printf");
     LoveAffix.makeFunctionInjectable("graphics", "rectangle");
     LoveAffix.makeFunctionInjectable("graphics", "origin");
+    LoveAffix.makeFunctionInjectable("mouse", "getPosition");
+    LoveAffix.makeFunctionInjectable("mouse", "getX");
+    LoveAffix.makeFunctionInjectable("mouse", "getY");
+    LoveAffix.makeFunctionInjectable("mousemoved");
+    LoveAffix.makeFunctionInjectable("mousepressed");
+    LoveAffix.makeFunctionInjectable("mousereleased");
 
     LoveAffix.injectCodeIntoLove(drawCallErroring, "graphics", "arc");
     LoveAffix.injectCodeIntoLove(drawCallErroring, "graphics", "circle");
@@ -104,6 +152,12 @@ function DepthDrawing.init()
     LoveAffix.injectCodeIntoLove(drawCallErroring, "graphics", "printf");
     LoveAffix.injectCodeIntoLove(drawCallErroring, "graphics", "rectangle");
     LoveAffix.appendCodeIntoLove(originAppend, "graphics", "origin");
+    LoveAffix.appendCodeIntoLove(mouseGetPositionAppend, "mouse", "getPosition");
+    LoveAffix.appendCodeIntoLove(mouseGetXAppend, "mouse", "getX");
+    LoveAffix.appendCodeIntoLove(mouseGetYAppend, "mouse", "getY");
+    LoveAffix.injectCodeIntoLove(mousemovedInject, "mousemoved");
+    LoveAffix.injectCodeIntoLove(mousepressedInject, "mousepressed");
+    LoveAffix.injectCodeIntoLove(mousepressedInject, "mousereleased");
 
     -- if an error occurs then dont cause a force quit for the entire application before the error screen can be drawn
     LoveAffix.makeFunctionInjectable("errorhandler");
@@ -263,6 +317,7 @@ function DepthDrawing.stopDrawingAtDepth(depth)
 end
 
 function DepthDrawing.finalizeFrame()
+    assert(self.enabled == true, "tried to finalize frame while DepthDrawin is diabled");
     assert(self.startDrawCalls == 0, "tried to finalize the depth buffers frame while a startDrawingAtDepth is still active still active");
 
     self.errorDrawCalls = false; -- dont error on drawing to the screen

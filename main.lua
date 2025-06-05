@@ -53,6 +53,10 @@ function love.update(dt)
     theVenusProject.time = theVenusProject.time + dt; -- keep track of time
 end
 
+function love.mousemoved(x, y, dx, dy)
+    print(x, y);
+end
+
 function love.draw()
     DepthDrawing.startDrawingAtDepth();
 

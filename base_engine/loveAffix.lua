@@ -12,7 +12,21 @@ function LoveAffix.init()
     -- __newindex function for love and its tables
     function loveMeta.__newindex(_love, key, value)
         if rawget(_love, "F_" .. key) then
-            -- append
+            if _love == love then
+                self.appendCodeIntoLove(value, key);
+            else
+                for k, v in pairs(love) do
+                    if v == _love then
+                        self.appendCodeIntoLove(value, k, key);
+
+                        return;
+                    end
+                end
+            end
+
+            -- bad practice to do this type of wording, but as only love and its tables are able to contain
+            -- this metatable then this is (probably) impossible to reach, but error just in case ;3
+            print("cosmic ray detected");
         else
             rawset(_love, key, value);
         end
@@ -52,6 +66,9 @@ function LoveAffix.makeFunctionInjectable(key, key2)
         rawset(_love, "F_" .. key, rawget(_love, key));
         rawset(_love, key, nil);
     else
+        if rawget(_love, "F_" .. key) then -- function is already prepped
+            return;
+        end
         -- already injectable but make it permanent by placing a function there
         rawset(_love, "F_" .. key, function() end);
     end
@@ -95,7 +112,13 @@ function LoveAffix.injectCodeIntoLove(inject, key, key2)
                 args = newArgs;
             end
 
-            return previousFunction(unpack(args));
+            local ret = {previousFunction(unpack(args))};
+
+            if #ret > 0 then
+                return unpack(ret);
+            else
+                return unpack(args);
+            end
         end
     );
 end
@@ -138,7 +161,13 @@ function LoveAffix.appendCodeIntoLove(append, key, key2)
                 args = newArgs;
             end
 
-            return append(unpack(args));
+            local ret = {append(unpack(args))};
+
+            if #ret > 0 then
+                return unpack(ret);
+            else
+                return unpack(args);
+            end
         end
     );
 end
