@@ -210,8 +210,41 @@ function DepthDrawing.clear(r, g, b)
     love.graphics.setCanvas();
 end
 
-function DepthDrawing.drawAtDepth(depth, ...)
+function DepthDrawing.draw(depth, ...)
     self.drawCallbackAtDepth(depth, love.graphics.draw, ...);
+end
+function DepthDrawing.arc(depth, ...)
+    self.drawCallbackAtDepth(depth, love.graphics.arc, ...);
+end
+function DepthDrawing.circle(depth, ...)
+    self.drawCallbackAtDepth(depth, love.graphics.circle, ...);
+end
+function DepthDrawing.drawInstanced(depth, ...)
+    self.drawCallbackAtDepth(depth, love.graphics.drawInstanced, ...);
+end
+function DepthDrawing.drawLayer(depth, ...)
+    self.drawCallbackAtDepth(depth, love.graphics.drawLayer, ...);
+end
+function DepthDrawing.ellipse(depth, ...)
+    self.drawCallbackAtDepth(depth, love.graphics.ellipse, ...);
+end
+function DepthDrawing.line(depth, ...)
+    self.drawCallbackAtDepth(depth, love.graphics.line, ...);
+end
+function DepthDrawing.points(depth, ...)
+    self.drawCallbackAtDepth(depth, love.graphics.points, ...);
+end
+function DepthDrawing.polygon(depth, ...)
+    self.drawCallbackAtDepth(depth, love.graphics.polygon, ...);
+end
+function DepthDrawing.print(depth, ...)
+    self.drawCallbackAtDepth(depth, love.graphics.print, ...);
+end
+function DepthDrawing.printf(depth, ...)
+    self.drawCallbackAtDepth(depth, love.graphics.printf, ...);
+end
+function DepthDrawing.rectangle(depth, ...)
+    self.drawCallbackAtDepth(depth, love.graphics.rectangle, ...);
 end
 
 function DepthDrawing.drawCallbackAtDepth(depth, callback, ...)
