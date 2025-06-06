@@ -1,4 +1,5 @@
-require("base_engine");
+require("base_engine"); require('game/mainGame'); 
+require("libs/SimpleShaderLoading")
 
 local theVenusProject = {};
 
@@ -9,6 +10,7 @@ local function addLetter(filename, x, y, rot)
         y = y;
         scale = 3;
         rot = rot;
+        filename = filename;
 
         rotOff = love.math.random() * math.pi * 2;
         rotMag = love.math.random() * math.pi / 8;
@@ -47,20 +49,31 @@ function love.load()
     addLetter("12",  300, 100, 0);
 
     theVenusProject.time = 0;
+    mainGame.load()
 end
+
+
 
 function love.update(dt)
     theVenusProject.time = theVenusProject.time + dt; -- keep track of time
+
+    mainGame.update(dt) -- calls the main loop in gameMain.lua
 end
 
-function love.mousemoved(x, y, dx, dy)
-    print(x, y);
+function love.mousemoved(x, y, dx, dy) --commented this since i think its not needed?
+   --print(x, y);
 end
 
-function love.draw()
-    DepthDrawing.startDrawingAtDepth();
+function drawLettersTest() --made this to also test shaders
+local function isEven(n)
+   return n % 2 == 0
+end
 
-    for i, v in ipairs(theVenusProject) do
+for i, v in ipairs(theVenusProject) do
+    if isEven(tonumber(v.filename)) then
+    drawShaders()
+    else
+    end
         love.graphics.draw(
             v.texture,
             v.x + v.xMag * math.cos(v.xOff + v.xSpeed * theVenusProject.time) + 30,
@@ -70,8 +83,36 @@ function love.draw()
             30,32
         );
     end
+end
+
+
+function drawLetters()  --made the letters a function
+    drawShaders()
+ for i, v in ipairs(theVenusProject) do
+        love.graphics.draw(
+            v.texture,
+            v.x + v.xMag * math.cos(v.xOff + v.xSpeed * theVenusProject.time) + 30,
+            v.y + v.yMag * math.cos(v.yOff + v.ySpeed * theVenusProject.time) + 32,
+            v.rot + v.rotMag * math.cos(v.rotOff + v.rotSpeed * theVenusProject.time),
+            v.scale, v.scale,
+            30,32
+        );
+    end
+end
+
+
+
+
+function love.draw()
+    DepthDrawing.startDrawingAtDepth();
+
+    mainGame.draw();
+
+    drawLetters();
 
     DepthDrawing.stopDrawingAtDepth(0);
 
     DepthDrawing.finalizeFrame(); -- draw frame to the window
 end
+
+return theVenusProject
