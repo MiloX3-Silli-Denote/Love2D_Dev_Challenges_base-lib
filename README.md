@@ -66,3 +66,24 @@ You can also use ```LoveAffix.appendCodeIntoLove(apendedCode, key, [key2]);``` t
 #### IMPORTANT:
 you are unable to inject or append code unless that function is prepped for it in love. you can do this by calling ```LoveAffix.makeCodeInjectable(key, [key2]);``` not all love items are valid for injection so be careful, but most things that you wold be using is.
 there is no worry for calling ```LoveAffix.makeCodeInjectable(key, [key2]);``` on a function that is already prepped.
+
+### SimpleShaderLoading
+SimpleShaderLoading will keep track of, load, anctivate, send variables to, and unload shaders for you
+call ```SimpleShaderLoading.addShader(shaderName, shaderFilename);``` to load a shader
+if you want to unload a shader you can call ```SimpleShaderLoading.removeShader(shaderName);```
+if you need to send a variable to a shader you can use ```SimpleShaderLoading.sendExternToShader(shaderName, externName, [externvalues ...]);```
+to activate a shader simply call ```SimpleShaderLoading.activateShader(shaderName);```
+and to deactivate shaders call ```SimpleShaderLoading.stopShaders();```
+here is an example of using SimpleShaderLoading:
+```lua
+-- in love.load
+SimpleShaderLoading.addShader("vhs", "shaders/SimpleShaderLoading/vhsFilter.frag");
+
+-- in love.update
+SimpleShaderLoading.sendExternToShader("vhs", "time", time);
+
+-- in love.draw
+SimpleShaderLoading.activateShader("vhs");
+love.graphics.draw(curCanvas); -- canvas containing the frame wanted to be displayed on the screen
+SimpleShaderLoading.stopShaders();
+```

@@ -51,13 +51,6 @@ end
 
 -- removed SimpleShaderLoading.startShaders() because it didnt do anything useful
 
-function SimpleShaderLoading.resetShaders() --resets all shaders
-    self.allShaders = {};
-
-    -- love.graphics.setShader() returns nil so this effectively removes all shaders from the list
-    --for i, shader in ipairs(self.allShaders) do
-    --    shader.shader = love.graphics.setShader()
-    --end
-end
+-- remove SimpleShaderLoading.resetShaders() because it removed all shaders which isnt useful
 
 return SimpleShaderLoading;
