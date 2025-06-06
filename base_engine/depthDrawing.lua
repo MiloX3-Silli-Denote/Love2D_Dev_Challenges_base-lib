@@ -51,6 +51,7 @@ function DepthDrawing.init()
     -- canvases for drawing depth appropriately
     self.currentLayer = love.graphics.newCanvas(self.w, self.h); -- temporary at depth
     self.render       = love.graphics.newCanvas(self.w, self.h); -- final frame
+    self.render_2     = love.graphics.newCanvas(self.w, self.h); -- if you want to apply a shader to the frame
     self.depth        = love.graphics.newCanvas(self.w, self.h, {format = "depth16", readable = true}); -- depth buffer
 
     -- how many times has startDrawingAtDepth() been called?
@@ -187,6 +188,7 @@ function DepthDrawing.setDimensions(w, h) -- update canvases and transformations
 
     self.currentLayer = love.graphics.newCanvas(w, h);
     self.render       = love.graphics.newCanvas(w, h);
+    self.render_2     = love.graphics.newCanvas(w, h);
     self.depth        = love.graphics.newCanvas(w, h, {format =  "depth16", readable = true});
 
     self.updateTransformations();
@@ -205,8 +207,8 @@ function DepthDrawing.updateTransformations()
 end
 
 function DepthDrawing.clear(r, g, b)
-    love.graphics.setCanvas({self.currentLayer, self.render, depthstencil = self.depth});
-    love.graphics.clear({r or 0, g or 0, b or 0, 1}, {r or 0, g or 0, b or 0, 1}, true, 1); -- clear all colours and depths
+    love.graphics.setCanvas({self.currentLayer, self.render, self.render_2, depthstencil = self.depth});
+    love.graphics.clear({r or 0, g or 0, b or 0, 1}, {r or 0, g or 0, b or 0, 1}, {r or 0, g or 0, b or 0, 1}, true, 1); -- clear all colours and depths
     love.graphics.setCanvas();
 end
 
@@ -347,6 +349,21 @@ function DepthDrawing.stopDrawingAtDepth(depth)
     love.graphics.pop();
 
     self.errorDrawCalls = true; -- error draw calls since theyre not done in the DepthDrawing
+end
+
+function DepthDrawing.drawToSelf()
+    assert(self.enabled == true, "tried to finalize frame while DepthDrawin is diabled");
+    assert(self.startDrawCalls == 0, "tried to finalize the depth buffers frame while a startDrawingAtDepth is still active still active");
+
+    self.errorDrawCalls = false;
+
+    self.render, self.render_2 = self.render_2, self.render;
+
+    love.graphics.setCanvas(self.render);
+    love.graphics.clear();
+    love.graphics.draw(self.render_2); -- draw it to the frame
+
+    self.errorDrawCalls = true;
 end
 
 function DepthDrawing.finalizeFrame()

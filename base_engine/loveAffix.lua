@@ -14,6 +14,8 @@ function LoveAffix.init()
         if rawget(_love, "F_" .. key) then
             if _love == love then
                 self.appendCodeIntoLove(value, key);
+
+                return;
             else
                 for k, v in pairs(love) do
                     if v == _love then
@@ -26,7 +28,7 @@ function LoveAffix.init()
 
             -- bad practice to do this type of wording, but as only love and its tables are able to contain
             -- this metatable then this is (probably) impossible to reach, but error just in case ;3
-            print("cosmic ray detected");
+            error("cosmic ray detected");
         else
             rawset(_love, key, value);
         end

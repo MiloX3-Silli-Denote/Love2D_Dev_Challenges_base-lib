@@ -1,27 +1,26 @@
-require("base_engine"); require('game/mainGame'); 
-require("libs/SimpleShaderLoading")
+require("base_engine");
+require("simpleShaderLoading").init();
 
 local theVenusProject = {};
 
 local function addLetter(filename, x, y, rot)
     local letter = {
         texture = love.graphics.newImage("textures/base_engine/" .. filename .. ".png");
-        x = x;
-        y = y;
+        x     = x;
+        y     = y;
         scale = 3;
-        rot = rot;
-        filename = filename;
+        rot   = rot;
 
-        rotOff = love.math.random() * math.pi * 2;
-        rotMag = love.math.random() * math.pi / 8;
+        rotOff   = love.math.random() * math.pi * 2;
+        rotMag   = love.math.random() * math.pi / 8;
         rotSpeed = love.math.random() * math.pi / 6;
 
-        xOff = love.math.random() * math.pi * 2;
-        xMag = love.math.random() * 20 + 10;
+        xOff   = love.math.random() * math.pi * 2;
+        xMag   = love.math.random() * 20 + 10;
         xSpeed = love.math.random() * 0.3;
 
-        yOff = love.math.random() * math.pi * 2;
-        yMag = love.math.random() * 15 + 20;
+        yOff   = love.math.random() * math.pi * 2;
+        yMag   = love.math.random() * 15 + 20;
         ySpeed = love.math.random() * 0.3;
     };
 
@@ -48,32 +47,22 @@ function love.load()
     addLetter("11",  100, 100, 0);
     addLetter("12",  300, 100, 0);
 
+    SimpleShaderLoading.addShader("vhs", "shaders/simpleShaderLoading/vhsFilter.frag");
+
     theVenusProject.time = 0;
-    mainGame.load()
 end
-
-
 
 function love.update(dt)
     theVenusProject.time = theVenusProject.time + dt; -- keep track of time
-
-    mainGame.update(dt) -- calls the main loop in gameMain.lua
 end
 
 function love.mousemoved(x, y, dx, dy) --commented this since i think its not needed?
-   --print(x, y);
+    -- to understand that mouse position is transformed a bit from normal!
+    --print(x, y);
 end
 
-function drawLettersTest() --made this to also test shaders
-local function isEven(n)
-   return n % 2 == 0
-end
-
-for i, v in ipairs(theVenusProject) do
-    if isEven(tonumber(v.filename)) then
-    drawShaders()
-    else
-    end
+local function drawLetters()  --made the letters a function
+    for i, v in ipairs(theVenusProject) do
         love.graphics.draw(
             v.texture,
             v.x + v.xMag * math.cos(v.xOff + v.xSpeed * theVenusProject.time) + 30,
@@ -84,35 +73,16 @@ for i, v in ipairs(theVenusProject) do
         );
     end
 end
-
-
-function drawLetters()  --made the letters a function
-    drawShaders()
- for i, v in ipairs(theVenusProject) do
-        love.graphics.draw(
-            v.texture,
-            v.x + v.xMag * math.cos(v.xOff + v.xSpeed * theVenusProject.time) + 30,
-            v.y + v.yMag * math.cos(v.yOff + v.ySpeed * theVenusProject.time) + 32,
-            v.rot + v.rotMag * math.cos(v.rotOff + v.rotSpeed * theVenusProject.time),
-            v.scale, v.scale,
-            30,32
-        );
-    end
-end
-
-
-
 
 function love.draw()
-    DepthDrawing.startDrawingAtDepth();
+    DepthDrawing.drawCallbackAtDepth(0, drawLetters);
 
-    mainGame.draw();
+    SimpleShaderLoading.activateShader("vhs"); -- apply vhs shader to the screen
+    SimpleShaderLoading.giveShaderExtern("vhs", "time", theVenusProject.time);
+    DepthDrawing.drawToSelf();
+    SimpleShaderLoading.stopShaders(); -- stop applying inverting shader
 
-    drawLetters();
-
-    DepthDrawing.stopDrawingAtDepth(0);
-
-    DepthDrawing.finalizeFrame(); -- draw frame to the window
+    DepthDrawing.finalizeFrame(); -- draw frame to the window (always call last)
 end
 
 return theVenusProject
