@@ -68,7 +68,7 @@ you are unable to inject or append code unless that function is prepped for it i
 there is no worry for calling ```LoveAffix.makeCodeInjectable(key, [key2]);``` on a function that is already prepped.
 
 ### SimpleShaderLoading
-SimpleShaderLoading will keep track of, load, anctivate, send variables to, and unload shaders for you
+SimpleShaderLoading will keep track of, load, activate, send variables to, and unload shaders for you
 call ```SimpleShaderLoading.addShader(shaderName, shaderFilename);``` to load a shader
 if you want to unload a shader you can call ```SimpleShaderLoading.removeShader(shaderName);```
 if you need to send a variable to a shader you can use ```SimpleShaderLoading.sendExternToShader(shaderName, externName, [externvalues ...]);```
@@ -87,3 +87,24 @@ SimpleShaderLoading.activateShader("vhs");
 love.graphics.draw(curCanvas); -- canvas containing the frame wanted to be displayed on the screen
 SimpleShaderLoading.stopShaders();
 ```
+
+### TextureSimplifier
+TextureSimplifier will keep track of, load, help draw, set filter, and resize for you
+call ```TextureSimplifier.addTexture(textureName, textureFilename, [treatAsTextureOfWidth, treatAsTextureOfHeight]);``` to load a texture
+the optional arguments "treatAsTextureOfWidth" and "treatAsTextureOfHeight" are for making it easier to draw if you plan on maybe changing the texture (if you define one of the args then you must define both)
+so for example if you do something like:
+```lua
+-- textures/player.png is a 16x16 texture being treated as a 16x16 texture
+TextureSimplifier.addTexture("player", "textures/player.png", 16,16);
+
+-- love.draw
+love.graphics.draw(TextureSimplifier.getDrawable("player", player.x, player.y)); -- draw player
+```
+then the "player" texture will draw in a 16x16 pixel area at player.x and player.y, but if you change "textures/player.png" to be a higher resolution
+64x64 texture, then in normal love, you would have to scale it by 0.25 to get it to draw as it previously was, but TextureSimplifier will do this automatically, so nothing would change
+
+remove a texture with ```TextureSimplifier.removeTexture(textureName);``` (this will unload it)
+use ```TextureSimplifier.setFilter(textureName, nearFilter, farFilter);``` and ```TextureSimplifier.setDepthCompareMode(textureName, compareMode);``` to perform those funcitons on the given texture
+
+to draw a texture you can get a drawable (that is already scaled as the texture waants to be treated as) with ```TextureSimplifier.getDrawable(textureName);```
+which allows you to draw it using something like: ```love.graphics.draw(TextureSimplifier.getDrawable(texName), obj.x, obj.y, obj.rot, obj.scaleX, obj.scaleY);```

@@ -1,11 +1,20 @@
 require("base_engine");
 require("simpleShaderLoading").init();
+require("textureSimplifier").init();
 
 local theVenusProject = {};
 
 local function addLetter(filename, x, y, rot)
+    local resolution = love.math.random(1, 3); -- [1,3] int
+
+    if filename == "05" then
+        resolution = 1; -- the heart looks bad at lower resolution
+    end
+
+    TextureSimplifier.addTexture(filename, "textures/base_engine/resolution_" .. tostring(resolution) .. "/" .. filename .. ".png", 64, 60);
+
     local letter = {
-        texture = love.graphics.newImage("textures/base_engine/" .. filename .. ".png");
+        texture = filename; -- key to TextureSimplifier drawable
         x     = x;
         y     = y;
         scale = 3;
@@ -24,7 +33,7 @@ local function addLetter(filename, x, y, rot)
         ySpeed = love.math.random() * 0.3;
     };
 
-    letter.texture:setFilter("nearest", "nearest");
+    TextureSimplifier.setFilter(filename, "nearest", "nearest");
 
     table.insert(theVenusProject, letter);
 end
@@ -64,7 +73,7 @@ end
 local function drawLetters()  --made the letters a function
     for i, v in ipairs(theVenusProject) do
         love.graphics.draw(
-            v.texture,
+            TextureSimplifier.getDrawable(v.texture),
             v.x + v.xMag * math.cos(v.xOff + v.xSpeed * theVenusProject.time) + 30,
             v.y + v.yMag * math.cos(v.yOff + v.ySpeed * theVenusProject.time) + 32,
             v.rot + v.rotMag * math.cos(v.rotOff + v.rotSpeed * theVenusProject.time),
@@ -77,10 +86,11 @@ end
 function love.draw()
     DepthDrawing.drawCallbackAtDepth(0, drawLetters);
 
-    SimpleShaderLoading.activateShader("vhs"); -- apply vhs shader to the screen
-    SimpleShaderLoading.giveShaderExtern("vhs", "time", theVenusProject.time);
+    -- removed shaders for easier viewing differences of texture resolution
+    --SimpleShaderLoading.activateShader("vhs"); -- apply vhs shader to the screen
+    --SimpleShaderLoading.giveShaderExtern("vhs", "time", theVenusProject.time);
     DepthDrawing.drawToSelf();
-    SimpleShaderLoading.stopShaders(); -- stop applying inverting shader
+    --SimpleShaderLoading.stopShaders(); -- stop applying inverting shader
 
     DepthDrawing.finalizeFrame(); -- draw frame to the window (always call last)
 end

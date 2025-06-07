@@ -28,7 +28,8 @@ end
 function SimpleShaderLoading.removeShader(shaderName)
     assert(self.allShaders[shaderName], "Cannot remove shader that does not exist: " .. shaderName);
 
-    self.allShaders[shaderName].shader:destroy(); -- tell love to remove it from gpu memory
+    -- accidentally called invalid: 'destroy' instead of 'release'
+    self.allShaders[shaderName].shader:release(); -- tell love to remove it from gpu memory
     self.allShaders[shaderName] = nil; -- remove it from the list of shaders
 end
 
