@@ -1,6 +1,7 @@
 require("base_engine");
 require("simpleShaderLoading").init();
 require("textureSimplifier").init();
+require("milos_grid_implementation").init();
 
 local theVenusProject = {};
 
@@ -59,6 +60,11 @@ function love.load()
     SimpleShaderLoading.addShader("vhs", "shaders/simpleShaderLoading/vhsFilter.frag");
 
     theVenusProject.time = 0;
+
+    Milos_Grid_Implementation.getWorld():getChunk(1,1):fillWithTile("conwaysGOL");
+    Milos_Grid_Implementation.getWorld():getTileAt(3,3):setLiving(true);
+    Milos_Grid_Implementation.getWorld():getTileAt(4,3):setLiving(true);
+    Milos_Grid_Implementation.getWorld():getTileAt(5,3):setLiving(true);
 end
 
 function love.update(dt)
@@ -84,13 +90,18 @@ local function drawLetters()  --made the letters a function
 end
 
 function love.draw()
-    DepthDrawing.drawCallbackAtDepth(0, drawLetters);
-
+    DepthDrawing.drawCallbackAtDepth(5, drawLetters);
+    
     -- removed shaders for easier viewing differences of texture resolution
     --SimpleShaderLoading.activateShader("vhs"); -- apply vhs shader to the screen
     --SimpleShaderLoading.giveShaderExtern("vhs", "time", theVenusProject.time);
     DepthDrawing.drawToSelf();
     --SimpleShaderLoading.stopShaders(); -- stop applying inverting shader
+
+    love.graphics.setColor(0.5,0.5,0.5); -- gray
+    DepthDrawing.drawCallbackAtDepth(3, love.graphics.rectangle, "fill", -960, -540, 1920, 1080);
+
+    Milos_Grid_Implementation.draw();
 
     DepthDrawing.finalizeFrame(); -- draw frame to the window (always call last)
 end

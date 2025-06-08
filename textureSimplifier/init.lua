@@ -64,6 +64,13 @@ function TextureSimplifier.removeTexture(name)
     self.textures[name] = nil; -- remove texture from list
 end
 
+function TextureSimplifier.getTexture(name)
+    assert(type(name) == "string", "tried to get texture of an invalid name from textures: " .. type(name));
+    assert(self.textures[name], "tried to get texture of a texture that does not exist: " .. name);
+
+    return self.textures[name].img;
+end
+
 function TextureSimplifier.getDrawable(name)
     assert(type(name) == "string", "tried to get drawable of an invalid name from textures: " .. type(name));
     assert(self.textures[name], "tried to get drawable of a texture that does not exist: " .. name);

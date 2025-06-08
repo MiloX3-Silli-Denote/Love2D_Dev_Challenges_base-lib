@@ -126,7 +126,7 @@ function LoveAffix.injectCodeIntoLove(inject, key, key2)
 end
 
 function LoveAffix.appendCodeIntoLove(append, key, key2)
-    local errorInfo = "love." .. key .. (key2 and "." .. key2 or ""); -- swicth case ;3
+    local errorInfo = "love." .. key .. (key2 and "." .. key2 or "");
 
     assert(type(append) == "function", "tried to append a non function into lov: " .. errorInfo);
 

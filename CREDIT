@@ -1,4 +1,34 @@
-Here contains Credit for all of the project as we can tell:
+# Here contains Credit for all of the project as we can tell:
 
-Milo:3 Silli Denote - everything
-LSuperGame          - lib :'SimpleShaderLoading' and shaders
+#### Milo:3 Silli Denote
+- programing
+#### LSuperGame
+- programing
+
+## Libraries credit:
+#### base_engine:
+    DepthDrawing              - Milo:3 Silli Denote
+    LoveAffix                 - Milo:3 Silli Denote
+
+#### milos_grid_implementaion:
+    milos_grid_implementation - Milo:3 Silli Denote
+
+#### SimpleShaderLoading:
+    SimpleShaderLoading       - Lsupergame
+
+#### TextureSimplifier:
+    TextureSimplifier         - Milo:3 Silli Denote
+
+## Artwork credit:
+#### base_engine
+    all                       - Milo:3 Silli Denote
+
+## Shader credit:
+## base_engine:
+    all                       - Milo:3 Silli Denote
+
+## simpleShaderLoading
+    vhsFilter                 - Milo:3 Silli Denote
+    all                       - Lsupergame
+
+## Audio credit:

@@ -108,3 +108,5 @@ use ```TextureSimplifier.setFilter(textureName, nearFilter, farFilter);``` and `
 
 to draw a texture you can get a drawable (that is already scaled as the texture waants to be treated as) with ```TextureSimplifier.getDrawable(textureName);```
 which allows you to draw it using something like: ```love.graphics.draw(TextureSimplifier.getDrawable(texName), obj.x, obj.y, obj.rot, obj.scaleX, obj.scaleY);```
+
+or to just get the unmodified texture 'image' object call ```TextureSimplifier.getTexture(textureName);```
