@@ -67,6 +67,16 @@ You can also use ```LoveAffix.appendCodeIntoLove(apendedCode, key, [key2]);``` t
 you are unable to inject or append code unless that function is prepped for it in love. you can do this by calling ```LoveAffix.makeCodeInjectable(key, [key2]);``` not all love items are valid for injection so be careful, but most things that you wold be using is.
 there is no worry for calling ```LoveAffix.makeCodeInjectable(key, [key2]);``` on a function that is already prepped.
 
+### Camera
+Camera will take care of screenspace transformations for you, you can move the camera around, rotate it, scale it, and apply paralax shifting
+to move the camera you can call ```Camera.setPosition(x, y);``` to set its position, or ```Camera.translate(x, y);``` to translate its position
+to scale the camera yuou can call ```Camera.setScale(scale);``` to set its scaling value and ```Camera.resetScale();``` to reset it to its default value of 1
+rotating the camera is done with ```Camera.setRotation(rotation);``` to set it directly, ```Camera.rotate(rotation);``` to change the value (its arg is added to the current rotation), or ```Camera.resetRotation();``` to set the rotation to its default value of 0. Important to remember that the camera is rotated and not the world, so the love.graphics. equivalent is of the negative rotation of the camera.
+paralax shifting can be achieved from calling ```Camera.setParalax(paralax);``` a paralax value of 1 is the default, where transformations are applied 1:1, a paralax value of 0 means the drawn objects act like theyre infinitely far away, so they do not move no matter how much the cameras position changes, any paralax value above 1 will act like its closer to the camera, so for example a paralax value of 2 will translate at a 1:2 ratio. The paralax value can be imagined as the reciprocal of the distance from the camera if the camera has a 90deg fov.
+
+Camera attributes can be saved using ```Camera.push();``` and ```Camera.pop();``` as if they were love.graphics.push and pop calls
+and the camera can be reset with ```Camera.reset();``` or ```Camera.origin();``` (they are the same function)
+
 ### SimpleShaderLoading
 SimpleShaderLoading will keep track of, load, activate, send variables to, and unload shaders for you
 call ```SimpleShaderLoading.addShader(shaderName, shaderFilename);``` to load a shader

@@ -306,8 +306,8 @@ function DepthDrawing.startDrawingAtDepth()
     -- make calling love.graphics.origin() not mess up the desired centering and scaling of the universe
     self.transformOrigin = true;
 
-    -- the previously mentioned centering and scaling of the universe
-    love.graphics.origin(); -- origin because any previous transformations would get messed up by just calling self.applyTransformation()
+    -- apply the camera transformations to the drawing
+    Camera.applyCamera();
 
     love.graphics.setDepthMode("always", false);
     love.graphics.setCanvas(self.currentLayer);
@@ -328,8 +328,12 @@ function DepthDrawing.stopDrawingAtDepth(depth)
         return;
     end
 
+    -- stop the camera from transforming the screen
+    Camera.unapplyCamera();
+
     -- make calling love.graphics.origin() ignore the previous centering and scaling of the universe
     self.transformOrigin = false;
+
 
     -- draw the currentLayer canvas to the final render target with depth
     love.graphics.setCanvas({self.render, depthstencil = self.depth});
@@ -355,15 +359,29 @@ function DepthDrawing.drawToSelf()
     assert(self.enabled == true, "tried to finalize frame while DepthDrawin is diabled");
     assert(self.startDrawCalls == 0, "tried to finalize the depth buffers frame while a startDrawingAtDepth is still active still active");
 
+    -- swap pointers now to avoid doing it later
+    self.render, self.render_2 = self.render_2, self.render;
+
+    -- prevent draw calls from erroring and origin from being transformed
+    local prevTransformOrigin = self.transformOrigin;
+    local prevErrorDrawCalls  = self.errorDrawCalls;
+
+    self.transformOrigin = false;
     self.errorDrawCalls = false;
 
-    self.render, self.render_2 = self.render_2, self.render;
+    love.graphics.push();
+    love.graphics.origin(); -- prevent transformations from messing the draw up
+
+    -- dont reset the shader because the main use of this function is for applying screenspace shaders
 
     love.graphics.setCanvas(self.render);
     love.graphics.clear();
     love.graphics.draw(self.render_2); -- draw it to the frame
 
-    self.errorDrawCalls = true;
+    love.graphics.pop();
+
+    self.transformOrigin = prevTransformOrigin;
+    self.errorDrawCalls  = prevErrorDrawCalls;
 end
 
 function DepthDrawing.finalizeFrame()
@@ -372,7 +390,7 @@ function DepthDrawing.finalizeFrame()
 
     self.errorDrawCalls = false; -- dont error on drawing to the screen
 
-    -- ensure that no modifications are made so they mess up the final drawing of the fram
+    -- ensure that no modifications are made so they mess up the final drawing of the frame
     love.graphics.origin();
     love.graphics.setCanvas();
     love.graphics.setShader();

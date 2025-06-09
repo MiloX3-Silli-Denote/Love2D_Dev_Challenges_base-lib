@@ -48,15 +48,13 @@ function World:getTileAt(x, y)
     x = x - self.x * self.chunkSize; -- perform less operations in asserts
     y = y - self.y * self.chunkSize;
 
+    -- if out of bounds then return nil to show that we dont know what is there
     if x <= 0 or y <= 0 then
-        return;
+        return nil;
     end
     if x > self.loadedChunks * self.chunkSize or y > self.loadedChunks * self.chunkSize then
-        return;
+        return nil;
     end
-
-    --assert(x > 0 and y > 0, "cannot get tile below bounds of loaded chunks");
-    --assert(x <= self.loadedChunks * self.chunkSize and y <= self.loadedChunks * self.chunkSize, "cannot get tile above bounds of loaded chunks");
 
     local chunkX = math.floor((x - 1) / self.chunkSize) + 1; -- which chunk is the tile in?
     local chunkY = math.floor((y - 1) / self.chunkSize) + 1;

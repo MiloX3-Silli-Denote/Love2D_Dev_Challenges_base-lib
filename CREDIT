@@ -9,6 +9,7 @@
 #### base_engine:
     DepthDrawing              - Milo:3 Silli Denote
     LoveAffix                 - Milo:3 Silli Denote
+    Camera                    - Milo:3 Silli Denote
 
 #### milos_grid_implementaion:
     milos_grid_implementation - Milo:3 Silli Denote
