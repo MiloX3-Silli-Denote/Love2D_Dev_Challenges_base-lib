@@ -108,7 +108,7 @@ so for example if you do something like:
 TextureSimplifier.addTexture("player", "textures/player.png", 16,16);
 
 -- love.draw
-love.graphics.draw(TextureSimplifier.getDrawable("player", player.x, player.y)); -- draw player
+love.graphics.draw(TextureSimplifier.getDrawable("player"), player.x, player.y); -- draw player
 ```
 then the "player" texture will draw in a 16x16 pixel area at player.x and player.y, but if you change "textures/player.png" to be a higher resolution
 64x64 texture, then in normal love, you would have to scale it by 0.25 to get it to draw as it previously was, but TextureSimplifier will do this automatically, so nothing would change
