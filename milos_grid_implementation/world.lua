@@ -34,6 +34,78 @@ function World.new()
     return instance;
 end
 
+function World:dealWithChunk(x, y, moveX, moveY)
+    local shiftX = x + moveX; -- location of the chunk that will be moved to this index
+    local shiftY = y + moveY;
+
+    -- if chunk will be moved out of loaded area, then unload it and load in new chunk
+    if shiftX <= 0 or shiftY <= 0 or shiftX > self.loadedChunks or shiftY > self.loadedChunks then
+        self.chunks[x][y]:saveChunk(); -- save chunk info to file
+
+        -- create a new chunk and load its data from file
+        local newChunk = Milos_Grid_Implementation.newChunk(self.chunkSize);
+        newChunk:setChunkPosition(x + self.x, y + self.y);
+
+        local errMsg = newChunk:loadChunk();
+
+        if errMsg then
+            if errMsg == "no file" then
+                -- proc gen here
+                -- just keep it filled w/ nothing for now though :3
+            end
+        end
+
+        self.chunks[x][y] = newChunk;
+
+        return; -- exit after loading new chunk into position
+    end
+
+    -- move chunk from future position to cur position in table
+    self.chunks[x][y] = self.chunks[shiftX][shiftY];
+end
+
+function World:setPosition(x, y)
+    if x == self.x and y == self.y then -- didnt actually move so dont do any modifications to the chunk data
+        return;
+    end
+
+    local moveX = x - self.x; -- get the effective translation
+    local moveY = y - self.y;
+
+    self.x = x; -- set position to new position
+    self.y = y;
+
+    -- variables for modifying direction of for loop's x direction
+    local xStart     = 1;
+    local xEnd       = self.loadedChunks;
+    local xDirection = 1;
+    -- variables for modifying direction of for loop's y direction
+    local yStart     = 1;
+    local yEnd       = self.loadedChunks
+    local yDirection = 1;
+
+    -- if shift to the left then filter chunks right to left
+    if moveX < 0 then
+        xStart = self.loadedChunks;
+        xEnd = 1;
+        xDirection = -1;
+    end
+
+    -- if shift is upwards then filter chunks bottom to top
+    if moveY < 0 then
+        yStart = self.loadedChunks;
+        yEnd = 1;
+        yDirection = -1;
+    end
+
+    -- loop through all chunks and 'deal w/ them' :3
+    for chunkX = xStart, xEnd, xDirection do
+        for chunkY = yStart, yEnd, yDirection do
+            self:dealWithChunk(chunkX, chunkY, moveX, moveY);
+        end
+    end
+end
+
 function World:getChunk(x, y)
     x = x - self.x; -- perform less operations in asserts
     y = y - self.y;
@@ -92,14 +164,17 @@ function World:draw()
 
     for x, v in ipairs(self.chunks) do
         for y, w in ipairs(v) do
-            love.graphics.origin();
+            love.graphics.push();
+
             love.graphics.scale(self.tileSize, self.tileSize);
             love.graphics.translate(
-                self.x + x - 1,
-                self.y + y - 1
+                (self.x + x - 1) * self.chunkSize,
+                (self.y + y - 1) * self.chunkSize
             );
 
             w:draw();
+
+            love.graphics.pop();
         end
     end
 

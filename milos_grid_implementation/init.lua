@@ -35,7 +35,7 @@ function Milos_Grid_Implementation.init()
 
         local name = string.sub(filename, 1, -5); -- remove '.lua'
 
-        -- add solver to solver list
+        -- add tile to tile list
         self.addTile(require(path .. "/tiles/" .. name));
     end
 
@@ -78,6 +78,7 @@ end
 function Milos_Grid_Implementation.addTile(tile)
     assert(type(tile.__name) == "string", "tried to add tile that doesnt have name");
     assert(self.tiles[tile.__name] == nil, "tried to add a tile to the grid implementation at name that already exists");
+    assert(tile.getSavedata, "tried to create a tile object that does not contain the :getSavedata() function");
 
     -- place tile in table at its name in the tiles table
     self.tiles[tile.__name] = tile;

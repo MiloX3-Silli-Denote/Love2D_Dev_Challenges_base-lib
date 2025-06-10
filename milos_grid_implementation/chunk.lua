@@ -2,6 +2,7 @@ local Chunk = {};
 Chunk.__index = Chunk; -- this IS a class
 
 Chunk.fileLocation = "milos_grid_implementation/chunks/"; -- location of files containing chunk data
+love.filesystem.createDirectory(Chunk.fileLocation); -- create file directory (if it doesnt exist already)
 
 -- 'layers' not implemented yet :3
 function Chunk.new(chunkSize)--, layers)
@@ -38,6 +39,11 @@ function Chunk:update(dt)
                 self.gridData[index]:update(dt); -- update tile
             end
         end
+    end
+
+    -- update tthe non grid objects
+    for _, v in ipairs(self.nonGridData) do
+        v:update(dt);
     end
 end
 
@@ -122,7 +128,7 @@ function Chunk:draw()
     end
 end
 
-function Chunk:saveChunkAt(x, y) -- save the chunk data to a file given the chunk coords
+function Chunk:saveChunk() -- save the chunk data to a file given the chunk coords
     local file = "v0.1\n"; -- version of save/load data
 
     file = file .. "chunkSize|" .. tostring(self.chunkSize) .. "\n"; -- prevent chunk size mismatch (maybe allow OTF resizing using side by side chunks)
@@ -131,13 +137,13 @@ function Chunk:saveChunkAt(x, y) -- save the chunk data to a file given the chun
     -- go though all tiles this chunk has and save them
     for tileX = 1, self.chunkSize do
         for tileY = 1, self.chunkSize do
-            local tile = self.getTileAt(tileX, tileY);
+            local tile = self:getTileAt(tileX, tileY);
 
             local saveData;
             local objLoadInfo;
 
             if tile then
-                saveData    = tile:getSaveData(); -- get tile data
+                saveData    = tile:getSavedata(); -- get tile data
                 objLoadInfo = tile.__name;        -- what object to load this data with
             else -- if the tile is empty
                 saveData    = "nil"; -- show that there was no tile present
@@ -148,7 +154,7 @@ function Chunk:saveChunkAt(x, y) -- save the chunk data to a file given the chun
             assert(string.len(objLoadInfo) > 0, "cannot save tile that does not contain objects name");
 
             -- save the size of the savedata bcs if used an eof flag, then savedata may accidentally contain that flag
-            file = file .. objLoadInfo .. tostring(string.len(saveData)) .. "|" .. saveData .. "\n"; -- save the tile data to the file
+            file = file .. objLoadInfo .. "\n" .. tostring(string.len(saveData)) .. "\n" .. saveData .. "\n"; -- save the tile data to the file
         end
     end
 
@@ -156,7 +162,7 @@ function Chunk:saveChunkAt(x, y) -- save the chunk data to a file given the chun
     file = file .. tostring(#self.nonGridData) .. "\n"; -- describe the number of non grid objects (for quicker error recognition)
 
     for _, v in ipairs(self.nonGridData) do
-        local savedata    = v:getSaveData(); -- get object data
+        local savedata    = v:getSavedata(); -- get object data
         local objLoadInfo = v.__name;        -- what object to load this data with
 
         assert(string.match(objLoadInfo, "|") == nil, "cannot save object whose name contains '|': " .. objLoadInfo);
@@ -167,12 +173,12 @@ function Chunk:saveChunkAt(x, y) -- save the chunk data to a file given the chun
     end
 
     -- save data to file given the chunk coords
-    love.filesystem.write(self.fileLocation .. tostring(x) .. "_" .. tonumber(y) .. ".chu", file);
+    print(love.filesystem.write(self.fileLocation .. tostring(self.chunkX) .. "_" .. tonumber(self.chunkY) .. ".chu", file));
 end
 
 -- returns string containing fail msg if unsucessful; nil otherwise.
-function Chunk:loadChunkAt(x, y) -- load the chunk from a file given the chunk coords
-    if not love.filesystem.getInfo(self.fileLocation .. tostring(x) .. "_" .. tostring(y) .. ".chu") then
+function Chunk:loadChunk() -- load the chunk from a file given the chunk coords
+    if not love.filesystem.getInfo(self.fileLocation .. tostring(self.chunkX) .. "_" .. tostring(self.chunkY) .. ".chu") then
         return "no file"; -- no file was found for that position
     end
 

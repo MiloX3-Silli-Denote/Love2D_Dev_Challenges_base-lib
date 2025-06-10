@@ -69,6 +69,11 @@ end
 
 function love.update(dt)
     theVenusProject.time = theVenusProject.time + dt; -- keep track of time
+
+    Camera.translate(50 * dt, 0);
+
+    local world = Milos_Grid_Implementation.getWorld();
+    world:setPosition(math.floor(Camera.x / (8 * 32)), 0);
 end
 
 function love.mousemoved(x, y, dx, dy) --commented this since i think its not needed?
@@ -91,7 +96,7 @@ end
 
 function love.draw()
     DepthDrawing.drawCallbackAtDepth(5, drawLetters);
-    
+
     -- removed shaders for easier viewing differences of texture resolution
     --SimpleShaderLoading.activateShader("vhs"); -- apply vhs shader to the screen
     --SimpleShaderLoading.giveShaderExtern("vhs", "time", theVenusProject.time);

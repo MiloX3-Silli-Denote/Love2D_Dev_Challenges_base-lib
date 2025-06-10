@@ -26,4 +26,12 @@ function ConwaysGOLTile:draw()
     love.graphics.rectangle("fill", 0,0, 1,1); -- 1x1 (because of scaling)
 end
 
+function ConwaysGOLTile:getSavedata()
+    local ret = "v0.1\n"; -- version
+
+    ret = ret .. "alive|" .. (self.alive and "Y" or "N") .. "\n";
+
+    return ret;
+end
+
 return ConwaysGOLTile;

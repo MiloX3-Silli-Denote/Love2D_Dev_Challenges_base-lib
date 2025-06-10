@@ -7,9 +7,9 @@ function Camera.init()
 
     -- 1 for normal camera movement, 0 for infinite distance (no movement) 1 < X for closer to the camera
     -- double the value to double the speed of movement
-    self.paralax = 0;
+    self.paralax = 1;
 
-    self.scale = 1; -- how many 1920x1080 screens fit in the screen
+    self.scale = 1; -- how many 1920x1080 screens fit in the screen horizontally or vertically
 
     self.rotation = 0; -- radians
 
@@ -139,7 +139,7 @@ function Camera.tryToApplyTransform()
 
     love.graphics.origin();
     love.graphics.scale(self.scale);
-    love.graphics.rotate(-self.rotation); -- negative because the camera is rotating
+    love.graphics.rotate(-self.rotation); -- negative because the *camera* is rotating
     love.graphics.translate(-self.x * self.paralax, -self.y * self.paralax);
 end
 

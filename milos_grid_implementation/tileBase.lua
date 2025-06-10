@@ -9,19 +9,19 @@ TileBase.injectWhitelist = {
 
 -- list of names that are not allowed to be used (for easily spotting errors with the whitelist)
 TileBase.nameBlacklist = {
-    getSave     = true;
-    save        = true;
-    getSaveData = true;
-    getData     = true;
-    saveData    = true;
-    SaveData    = true;
-    savedata    = true;
-    Savedata    = true;
+    getSave     = "getSavedata";
+    save        = "getSavedata";
+    getSaveData = "getSavedata";
+    getData     = "getSavedata";
+    saveData    = "getSavedata";
+    SaveData    = "getSavedata";
+    savedata    = "getSavedata";
+    Savedata    = "getSavedata";
 
-    loadSaveData = true;
-    loadData     = true;
-    loadSave     = true;
-    load         = true;
+    loadSaveData = "loadSavedata";
+    loadData     = "loadSavedata";
+    loadSave     = "loadSavedata";
+    load         = "loadSavedata";
 };
 
 function TileBase:__index(key)
@@ -35,7 +35,7 @@ function TileBase:__index(key)
 end
 
 function TileBase:__newindex(key, val)
-    assert(not self.nameBlacklist[key], "tried to set value in TileBase of blacklisted key: " .. key);
+    assert(not self.nameBlacklist[key], "tried to set value in TileBase of blacklisted key: " .. key .. " . you probably wanted: " .. (self.nameBlacklist[key] or ""));
 
     local injectType = self.injectWhitelist[key];
 
@@ -47,7 +47,7 @@ function TileBase:__newindex(key, val)
 
     assert(type(val) == "function", "tried to inject non function into TileBase: " .. key);
 
-    local prevFunc = rawget(self, "_" .. key);
+    local prevFunc = self["_" .. key];
 
     local newFunc;
 
@@ -56,7 +56,10 @@ function TileBase:__newindex(key, val)
             local newArgs = {val(...)};
 
             if #newArgs > 0 then
-                return prevFunc(unpack(newArgs));
+                local calledObject = {...}; -- 'self'
+                calledObject = calledObject[1];
+
+                return prevFunc(calledObject, unpack(newArgs));
             else
                 return prevFunc(...);
             end
@@ -66,7 +69,10 @@ function TileBase:__newindex(key, val)
             local newArgs = {prevFunc(...)};
 
             if #newArgs > 0 then
-                return val(unpack(newArgs));
+                local calledObject = {...}; -- 'self'
+                calledObject = calledObject[1];
+
+                return val(calledObject, unpack(newArgs));
             else
                 return val(...);
             end
@@ -139,10 +145,27 @@ function TileBase:draw()
 end
 
 function TileBase:_getSavedata(append)
+    --? I don't know if it should set values from the queue here or not
+    --? (probably not because of possible moving between chunks and/or altering other tiles' values?)
+    -- self:setValuesFromQueue();
+
+    local ret = "v0.1\n"; -- version
+
+    local data = "x|" .. tostring(self.x) .. "\n";
+    data = data .. "y|" .. tostring(self.y) .. "\n";
+    data = data .. "solvers\n";
+
+    for _, v in ipairs(self.solvers) do
+        data = data .. v.name .. "\n"; -- add the names of the solvers to the data
+    end
+
+    ret = ret .. tostring(string.len(data)) .. "\n" .. data;
+
+    return ret .. "|\n" .. append;
 end
 
 function TileBase:_loadSavedata(data) -- return remaining object save data because injectWhitelist type of 2
-    local version, dataLen, allData = string.match(data, "^([^\n]*)\n(%d+)|(.*)$");
+    local version, dataLen, allData = string.match(data, "^([^\n]*)\n(%d+)\n(.*)$");
     assert(version and dataLen and allData, "tried to load corrupted save data");
 
     if version == "v0.1" then
