@@ -120,3 +120,24 @@ to draw a texture you can get a drawable (that is already scaled as the texture 
 which allows you to draw it using something like: ```love.graphics.draw(TextureSimplifier.getDrawable(texName), obj.x, obj.y, obj.rot, obj.scaleX, obj.scaleY);```
 
 or to just get the unmodified texture 'image' object call ```TextureSimplifier.getTexture(textureName);```
+
+### Milos_grid_implemenation
+Milos_grid_implementation isnt guarenteed to be stable and is probably not ready to be used yet, but is in a functional state so here is how to opperate:
+the world is divided into tiles, and chunks of tiles are loaded by the world and will automatically write their data to a file and are able to read it back
+to change the amonut of tiles in a chunk, or the amount of chunks loaded at once by the world, then you must change the hard coded value in the world object at the top of the file
+world.chunkSize and world.loadedChunks, changine the chunk size and loading a file will cause an error as OTF chunk size changing isnt implemented
+to get the current world that is active use ```Milos_grid_implementation.getWorld();``` to get a chunk from the world use ```Milos_grid_implementation.getChunk(x, y);```
+to get a tile at a coordinate use ```Milos_grid_implementation.getTileAt(x, y);``` to load a different section of chunks (and save the chunks that are currently loaded)
+call ```world:setPosition(x, y);``` the x and y are the coordinates of the chunk at the top left of the loaded section.
+
+there are 3 types of objects in the world: tiles, solvers, and non-tiles
+to create a solver, which acts like a function that can be called automatically within a tile or non-tile. they are used to perform repeatable actions inside of an object without rewriting it for every object (and possibly slightly messing it up, just used as good obor practices). create them inside of the "milos_gridImplementation/solvers" directory, and they will automatically be added into the pool of solvers (remember that the filename you use (minus the .lua) is the name you use to locate the solver with ```Milos_grid_implementation.getSolver(name);```)
+
+Tiles are objects that can only be used in chunks when they align with the tiles of the world, create them by creating a file in "milos_grid_implementation/tiles", use tiles that are already there as a template as the manner in which they are created is very particular.
+
+non-tile objects are not complete as an object but can be made in the same way as tiles but with the directory: "milos_grid_implementation/nonTiles"
+
+Chunks can have tiles written to with ```chunk:setTileAt(x, y, tile/tilename);``` and an entire chunk can be filled with the same tile base using ```chunk:fillWithTile(tile/tilename);```
+
+#### IMPORTANT:
+Milos_grid_implementation is unfinished and such; its documentation is also unfinished, it is recommended not to use it quite yet; however, it is in a functional state and will be maintained with backwards compatability with the objects and files.

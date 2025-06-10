@@ -198,7 +198,9 @@ function Chunk:loadChunk() -- load the chunk from a file given the chunk coordin
         error("tried to load chunk with an invalid version: " .. version);
     end
 
-    self.chunkSize = tonumber(chunkSize);
+    local newChunkSize = tonumber(chunkSize);
+    assert(self.chunkSize == newChunkSize, "tried to load a file but the chunk size of the file did not match the chunk size of the world");
+    self.chunkSize = newChunkSize;
 
     for tileX = 1, self.chunkSize do
         for tileY = 1, self.chunkSize do
