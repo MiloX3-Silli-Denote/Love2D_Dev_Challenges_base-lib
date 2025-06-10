@@ -18,6 +18,8 @@ function Milos_Grid_Implementation.init()
     self.solvers = {};
     -- list of tiles that can be added to chunks
     self.tiles   = {};
+    -- list of non-tile objects that can be added to chunks
+    self.nonTiles = {};
 
     -- load all solvers in 'path .. /solvers'
     for _, filename in ipairs(love.filesystem.getDirectoryItems(path .. "/solvers")) do
@@ -37,6 +39,16 @@ function Milos_Grid_Implementation.init()
 
         -- add tile to tile list
         self.addTile(require(path .. "/tiles/" .. name));
+    end
+
+    -- load all non-tiles in 'path .. /nonTiles'
+    for _, filename in ipairs(love.filesystem.getDirectoryItems(path .. "/nonTiles")) do
+        assert(string.sub(filename, -4,-1) == ".lua", "non lua file located in nonTiles file, must be removed");
+
+        local name = string.sub(filename, 1, -5); -- remove '.lua'
+
+        -- add tile to tile list
+        self.addTile(require(path .. "/nonTiles/" .. name));
     end
 
     -- currently active world
@@ -87,8 +99,24 @@ function Milos_Grid_Implementation.getTile(name)
     assert(type(name) == "string", "tried to get tile at invalid name: " .. type(name));
     assert(self.tiles[name], "tried to get nonexistent tile: " .. name);
 
-    -- return the solver that we want
+    -- return the tile that we want
     return self.tiles[name];
+end
+
+function Milos_Grid_Implementation.addNonTile(nonTile)
+    assert(type(nonTile.__name) == "string", "tried to add non-tile that doesnt have name");
+    assert(self.nonTiles[nonTile.__name] == nil, "tried to add a non-tile to the grid implementation at name that already exists");
+    assert(nonTile.getSavedata, "tried to create a non-tile object that does not contain the :getSavedata() function");
+
+    -- place non-tile in table at its name in the non-tiles table
+    self.nonTiles[nonTile.__name] = nonTile;
+end
+function Milos_Grid_Implementation.getNonTile(name)
+    assert(type(name) == "string", "tried to get non-tile at invalid name: " .. type(name));
+    assert(self.nonTiles[name], "tried to get nonexistent non-tile: " .. name);
+
+    -- return the non-tile that we want
+    return self.nonTiles[name];
 end
 
 function Milos_Grid_Implementation.update(dt)

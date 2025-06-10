@@ -34,4 +34,18 @@ function ConwaysGOLTile:getSavedata()
     return ret;
 end
 
+function ConwaysGOLTile:loadSavedata(savedata)
+    local version, data = string.match(savedata, "^([^\n]*)\n(.*)$");
+    assert(version and data, "conways gol tile couldnt parse file");
+
+    if version == "v0.1" then
+    else
+        error("tried to load conways gol tile with invalid version");
+    end
+
+    local alive = (string.match(data, "alive|(.)")) == "Y";
+
+    self.alive = alive;
+end
+
 return ConwaysGOLTile;

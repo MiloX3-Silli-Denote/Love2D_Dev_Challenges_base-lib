@@ -175,7 +175,7 @@ function TileBase:_loadSavedata(data) -- return remaining object save data becau
     end
 
     -- seperate the data used in this function vs the data used inn the object specific function
-    local myData = string.sub(allData, 1, dataLen);
+    local myData = string.sub(allData, 0, dataLen);
     -- + 3 because: + 1 to get unique data, and guarenteed to contain '|\n'
     local retData = string.sub(allData, dataLen + 3, -1);
 

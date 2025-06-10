@@ -80,7 +80,10 @@ function Chunk:setTileAt(x, y, tile)
     assert(index > 0, "cannot set tile lower than bounds of chunk");
     assert(index <= self.chunkSize * self.chunkSize, "cannot set tile higher than bounds of chunk");
 
-    tile:updatePosition((self.chunkX - 1) * self.chunkSize + x, (self.chunkY - 1) * self.chunkSize + y);
+    if tile then
+        tile:updatePosition((self.chunkX - 1) * self.chunkSize + x, (self.chunkY - 1) * self.chunkSize + y);
+    end
+
     self.gridData[index] = tile;
 end
 
@@ -150,8 +153,8 @@ function Chunk:saveChunk() -- save the chunk data to a file given the chunk coor
                 objLoadInfo = "nil"; -- nil so no object to load it with
             end
 
-            assert(string.match(objLoadInfo, "|") == nil, "cannot save object whose name contains '|': " .. objLoadInfo);
-            assert(string.len(objLoadInfo) > 0, "cannot save tile that does not contain objects name");
+            assert(objLoadInfo and string.len(objLoadInfo) > 0, "cannot save tile that does not contain objects name");
+            assert(string.match(objLoadInfo, "[|\n]") == nil, "cannot save object whose name contains '|' or '\\n': " .. string.gsub(objLoadInfo, "\n", "\\n"));
 
             -- save the size of the savedata bcs if used an eof flag, then savedata may accidentally contain that flag
             file = file .. objLoadInfo .. "\n" .. tostring(string.len(saveData)) .. "\n" .. saveData .. "\n"; -- save the tile data to the file
@@ -165,25 +168,83 @@ function Chunk:saveChunk() -- save the chunk data to a file given the chunk coor
         local savedata    = v:getSavedata(); -- get object data
         local objLoadInfo = v.__name;        -- what object to load this data with
 
-        assert(string.match(objLoadInfo, "|") == nil, "cannot save object whose name contains '|': " .. objLoadInfo);
-        assert(string.len(objLoadInfo) > 0, "cannot save tile that does not contain objects name");
+        assert(objLoadInfo and string.len(objLoadInfo) > 0, "cannot save tile that does not contain objects name");
+        assert(string.match(objLoadInfo, "[|\n]") == nil, "cannot save object whose name contains '|' or '\\n': " .. string.gsub(objLoadInfo, "\n", "\\n"));
 
         -- save the size of the savedata bcs if used an eof flag, then savedata may accidentally contain that flag
-        file = file .. objLoadInfo .. "|" .. tostring(string.len(savedata)) .. "|" .. savedata .. "\n"; -- save the object data to the file
+        file = file .. objLoadInfo .. "\n" .. tostring(string.len(savedata)) .. "\n" .. savedata .. "\n"; -- save the object data to the file
     end
 
-    -- save data to file given the chunk coords
-    print(love.filesystem.write(self.fileLocation .. tostring(self.chunkX) .. "_" .. tonumber(self.chunkY) .. ".chu", file));
+    -- save the data to the file given by the chunk coordinates
+    love.filesystem.write(self.fileLocation .. tostring(self.chunkX) .. "_" .. tonumber(self.chunkY) .. ".chu", file);
 end
 
 -- returns string containing fail msg if unsucessful; nil otherwise.
-function Chunk:loadChunk() -- load the chunk from a file given the chunk coords
-    if not love.filesystem.getInfo(self.fileLocation .. tostring(self.chunkX) .. "_" .. tostring(self.chunkY) .. ".chu") then
+function Chunk:loadChunk() -- load the chunk from a file given the chunk coordinates
+    local filename = self.fileLocation .. tostring(self.chunkX) .. "_" .. tostring(self.chunkY) .. ".chu";
+
+    if not love.filesystem.getInfo(filename) then
         return "no file"; -- no file was found for that position
     end
 
-    -- not implemented yet (I took a break to have sex (am I the only comp sci girl to get bitches? probably :3c) /srs)
-    error("loading chunk not implemented yet");
+    local file = love.filesystem.read(filename);
+
+    local version, chunkSize, data = string.match(file, "^([^\n]*)\nchunkSize|(%d*)\ngridData\n(.*)$");
+    assert(version and chunkSize and data, "tried to load invalid chunk: " .. filename);
+
+    if version == "v0.1" then
+        -- loading the 0.1 version of the chunk loader
+    else
+        error("tried to load chunk with an invalid version: " .. version);
+    end
+
+    self.chunkSize = tonumber(chunkSize);
+
+    for tileX = 1, self.chunkSize do
+        for tileY = 1, self.chunkSize do
+            local objectName, dataSize, rem = string.match(data, "^([^\n]*)\n(%d*)\n(.*)$");
+            assert(objectName and dataSize and rem, "tried to load a tile for a chunk with invalid contents");
+            dataSize = tonumber(dataSize);
+
+            data = string.sub(rem, dataSize + 2, -1); -- +2 because tile always ends with '\n'
+
+            if objectName ~= "nil" then -- if tile is NOT empty
+                local objectData = string.sub(rem, 0, dataSize);
+                local tile = Milos_Grid_Implementation.getTile(objectName).new();
+                tile:loadSavedata(objectData);
+
+                self:setTileAt(tileX, tileY, tile);
+            else
+                self:setTileAt(tileX, tileY, nil);
+            end
+        end
+    end
+
+    -- empty the list of non grid data
+    self.nonGridData = {};
+
+    local nonGridDataObjectCount, nonGridData = string.match(data, "^\n?nonGridData\n(%d*)\n(.*)$");
+    assert(nonGridDataObjectCount and nonGridData, "catastrophic error: non-grid data mis-aligned in chunk file");
+
+    nonGridDataObjectCount = tonumber(nonGridDataObjectCount);
+
+    -- go through and load all of the non grid objects
+    for i = 1, nonGridDataObjectCount do
+        local nonGridObjectName, nonGridObjectDataSize, rem = string.match(nonGridData, "^([^\n]*)\n(%d*)\n(.*)$");
+        assert(nonGridObjectName and nonGridObjectDataSize and rem, "catastrophic error: non grid objects arent aligned properly in chunk file");
+        nonGridObjectDataSize = tonumber(nonGridObjectDataSize);
+
+        local objectData = string.sub(rem, 0, nonGridObjectDataSize);
+
+        local nonTile = Milos_Grid_Implementation.getNonTile(nonGridObjectName).new();
+        nonTile:loadSavedata(objectData);
+
+        -- add non-grid object to the list of non grid objects
+        table.insert(self.nonGridData, nonTile);
+
+        -- +2 because non-grid object savedata always ends with '\n'
+        nonGridData = string.sub(rem, nonGridObjectDataSize + 2, -1);
+    end
 end
 
 return Chunk;

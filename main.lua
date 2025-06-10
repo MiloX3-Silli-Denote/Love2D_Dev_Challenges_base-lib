@@ -61,10 +61,15 @@ function love.load()
 
     theVenusProject.time = 0;
 
-    Milos_Grid_Implementation.getWorld():getChunk(1,1):fillWithTile("conwaysGOL");
-    Milos_Grid_Implementation.getWorld():getTileAt(3,3):setLiving(true);
-    Milos_Grid_Implementation.getWorld():getTileAt(4,3):setLiving(true);
-    Milos_Grid_Implementation.getWorld():getTileAt(5,3):setLiving(true);
+    local loadFail = Milos_Grid_Implementation.getWorld():getChunk(1,1):loadChunk();
+
+    -- if there isnt a file on your computer with its data then create the data
+    if loadFail == "no file" then
+        Milos_Grid_Implementation.getWorld():getChunk(1,1):fillWithTile("conwaysGOL");
+        Milos_Grid_Implementation.getWorld():getTileAt(3,3):setLiving(true);
+        Milos_Grid_Implementation.getWorld():getTileAt(4,3):setLiving(true);
+        Milos_Grid_Implementation.getWorld():getTileAt(5,3):setLiving(true);
+    end
 end
 
 function love.update(dt)
