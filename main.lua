@@ -75,10 +75,10 @@ end
 function love.update(dt)
     theVenusProject.time = theVenusProject.time + dt; -- keep track of time
 
-    Camera.translate(50 * dt, 0);
+    --Camera.translate(50 * dt, 0);
 
-    local world = Milos_Grid_Implementation.getWorld();
-    world:setPosition(math.floor(Camera.x / (8 * 32)), 0);
+    --local world = Milos_Grid_Implementation.getWorld();
+    --world:setPosition(math.floor(Camera.x / (8 * 32)), 0);
 end
 
 function love.mousemoved(x, y, dx, dy) --commented this since i think its not needed?

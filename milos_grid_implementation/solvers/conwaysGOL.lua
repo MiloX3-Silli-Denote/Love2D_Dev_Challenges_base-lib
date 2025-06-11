@@ -23,11 +23,11 @@ local function conwaysGOLFunction(tile)
     totalAlive = totalAlive + (tile8 and tile8.__name == "conwaysGOL" and tile8.alive and 1 or 0);
 
     if totalAlive < 2 then
-        tile:queueValueChange("alive", false); -- fewer than 2 then die
+        tile:setLiving(false); -- fewer than 2 then die
     elseif totalAlive > 3 then
-        tile:queueValueChange("alive", false); -- more than 3 then die
+        tile:setLiving(false); -- more than 3 then die
     elseif totalAlive == 3 then
-        tile:queueValueChange("alive", true); -- exactly 3 then become alive
+        tile:setLiving(true); -- exactly 3 then become alive
     end -- if 2 then keep its state
 end
 

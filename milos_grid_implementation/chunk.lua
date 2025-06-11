@@ -4,11 +4,9 @@ Chunk.__index = Chunk; -- this IS a class
 Chunk.fileLocation = "milos_grid_implementation/chunks/"; -- location of files containing chunk data
 love.filesystem.createDirectory(Chunk.fileLocation); -- create file directory (if it doesnt exist already)
 
--- 'layers' not implemented yet :3
-function Chunk.new(chunkSize)--, layers)
+function Chunk.new(chunkSize)
     local instance = setmetatable({}, Chunk);
 
-    --instance.layers = layers or 1; -- number of layers to the grid
     instance.chunkSize = chunkSize;
 
     instance.chunkX = 0; -- chunk position
@@ -16,9 +14,8 @@ function Chunk.new(chunkSize)--, layers)
 
     -- single dimension array: index with x + (y - 1) * chunkSize (for efficiency)
     instance.gridData = {};
-    -- single dimension array: true or false, of whether to skip a tile in update
 
-    -- indexed table, dont look up w/ index, use pointers
+    -- indexed table; dont look up w/ index, use pointers
     instance.nonGridData = {};
 
     return instance;
@@ -34,14 +31,15 @@ function Chunk:update(dt)
         for y = 1, self.chunkSize do
             local index = x + (y - 1) * self.chunkSize;
 
-            if self.gridData[index] then
+            -- make sure this tile wants to update this tick before updating it
+            if self.gridData[index] and self.gridData[index]:wantsToUpdate() then
                 self.gridData[index]:updatePosition((self.chunkX - 1) * self.chunkSize + x, (self.chunkY - 1) * self.chunkSize + y);
                 self.gridData[index]:update(dt); -- update tile
             end
         end
     end
 
-    -- update tthe non grid objects
+    -- update the non-tile objects
     for _, v in ipairs(self.nonGridData) do
         v:update(dt);
     end

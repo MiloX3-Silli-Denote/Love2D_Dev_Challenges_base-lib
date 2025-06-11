@@ -1,10 +1,20 @@
+-- TODO: maybe have a more dynamic loading and unloading system, not all chunks *need* to be in a specific region
+-- TODO: quickly moving back and forth through a chunk border would cause a lot of loading and unloading
+-- TODO: so maybe have chunk region span an extra half chunk length and # of loaded chunks could be ~inconsistent
+
+-- TODO: save data for the world aswell
+
+-- TODO: OTF chunk resizing
+
+-- TODO: multithread saving and loading of chunks
+
 local World = {};
 World.__index = World; -- this IS a class
 
 World.chunkSize = 8; -- how many tiles wide and tall is each chunk?
-World.loadedChunks = 1; -- how many chunks are loaded at once? width and height (# of chunks if this ^2)
+World.loadedChunks = 1; -- how many chunks are loaded at once? width and height (# of chunks is this: ^2)
 
-World.tileSize = 32; -- how many units wide and tall is each tile?
+World.tileSize = 32; -- how many screen units wide and tall is each tile? (for drawing)
 
 World.tickrate = 0.5; -- number of seconds between update ticks
 
@@ -14,6 +24,12 @@ function World.new()
     -- what is the chunk position value of the top left chunk? (for keeping self.chunks an index table instead of keyed)
     instance.x = 0;
     instance.y = 0;
+
+    instance.attached = false; -- whether or not the world is attached to an object
+    instance.attachedTo = nil; -- what ithe camera is attached to, nil if not attached to something
+    -- what the key is for indexing the x and y position of the object the world is attached to
+    instance.attachedXKey = "x";
+    instance.attachedYKey = "y";
 
     instance.updateOverflow = 0; -- how much extra time was given to next tick
 
@@ -106,6 +122,21 @@ function World:setPosition(x, y)
     end
 end
 
+-- attaches the world to an object (like the camera or the player) so it moves w/ it
+function World:attachToObject(obj, keyX, keyY)
+    if obj then
+        self.attached = true;
+    else
+        self.attached = false;
+    end
+
+    self.attachedTo = obj;
+
+    -- incase object has a weird key for its world position
+    self.attachedXKey = keyX or "x";
+    self.attachedYKey = keyY or "y";
+end
+
 function World:getChunk(x, y)
     x = x - self.x; -- perform less operations in asserts
     y = y - self.y;
@@ -148,7 +179,7 @@ function World:update(dt)
 
     for _, v in ipairs(self.chunks) do
         for _, w in ipairs(v) do
-            w:update(dt);
+            w:update(self.tickrate);
         end
     end
 

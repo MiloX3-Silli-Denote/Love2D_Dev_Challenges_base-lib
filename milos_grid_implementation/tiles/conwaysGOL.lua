@@ -13,7 +13,13 @@ function ConwaysGOLTile.new()
 end
 
 function ConwaysGOLTile:setLiving(alive)
-    self.alive = alive;
+    if alive == self.alive then -- nothing would happen
+        return;
+    end
+
+    self:updateSurroundingTiles(); -- update tiles around me next tick
+
+    self:queueValueChange("alive", alive);
 end
 
 function ConwaysGOLTile:draw()
@@ -24,6 +30,11 @@ function ConwaysGOLTile:draw()
     end
 
     love.graphics.rectangle("fill", 0,0, 1,1); -- 1x1 (because of scaling)
+
+    if self.queuedForUpdate then
+        love.graphics.setColor(1,0,0, 0.2);
+        love.graphics.rectangle("fill", 0,0, 1,1);
+    end
 end
 
 function ConwaysGOLTile:getSavedata()

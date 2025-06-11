@@ -20,6 +20,8 @@ function Milos_Grid_Implementation.init()
     self.tiles   = {};
     -- list of non-tile objects that can be added to chunks
     self.nonTiles = {};
+    -- list of component objects that can be atached to tiles and/or non-tiles
+    self.components = {};
 
     -- load all solvers in 'path .. /solvers'
     for _, filename in ipairs(love.filesystem.getDirectoryItems(path .. "/solvers")) do
@@ -48,7 +50,17 @@ function Milos_Grid_Implementation.init()
         local name = string.sub(filename, 1, -5); -- remove '.lua'
 
         -- add tile to tile list
-        self.addTile(require(path .. "/nonTiles/" .. name));
+        self.addNonTile(require(path .. "/nonTiles/" .. name));
+    end
+
+    -- load all non-tiles in 'path .. /components'
+    for _, filename in ipairs(love.filesystem.getDirectoryItems(path .. "/components")) do
+        assert(string.sub(filename, -4,-1) == ".lua", "non lua file located in components file, must be removed");
+
+        local name = string.sub(filename, 1, -5); -- remove '.lua'
+
+        -- add tile to tile list
+        self.addComponent(require(path .. "/components/" .. name));
     end
 
     -- currently active world
@@ -78,7 +90,6 @@ function Milos_Grid_Implementation.addSolver(name, solver)
     self.solvers[name] = solver;
     solver.name = name; -- for easier OTF locating
 end
-
 function Milos_Grid_Implementation.getSolver(name)
     assert(type(name) == "string", "tried to get solver at invalid name: " .. type(name));
     assert(self.solvers[name], "tried to get nonexistent solver: " .. name);
@@ -90,7 +101,6 @@ end
 function Milos_Grid_Implementation.addTile(tile)
     assert(type(tile.__name) == "string", "tried to add tile that doesnt have name");
     assert(self.tiles[tile.__name] == nil, "tried to add a tile to the grid implementation at name that already exists");
-    assert(tile.getSavedata, "tried to create a tile object that does not contain the :getSavedata() function");
 
     -- place tile in table at its name in the tiles table
     self.tiles[tile.__name] = tile;
@@ -106,7 +116,6 @@ end
 function Milos_Grid_Implementation.addNonTile(nonTile)
     assert(type(nonTile.__name) == "string", "tried to add non-tile that doesnt have name");
     assert(self.nonTiles[nonTile.__name] == nil, "tried to add a non-tile to the grid implementation at name that already exists");
-    assert(nonTile.getSavedata, "tried to create a non-tile object that does not contain the :getSavedata() function");
 
     -- place non-tile in table at its name in the non-tiles table
     self.nonTiles[nonTile.__name] = nonTile;
@@ -117,6 +126,21 @@ function Milos_Grid_Implementation.getNonTile(name)
 
     -- return the non-tile that we want
     return self.nonTiles[name];
+end
+
+function Milos_Grid_Implementation.addComponent(component)
+    assert(type(component.__name) == "string", "tried to add component that doesnt have name");
+    assert(self.components[component.__name] == nil, "tried to add a component to the grid implementation at name that already exists");
+
+    -- place component in table at its name in the components table
+    self.components[component.__name] = component;
+end
+function Milos_Grid_Implementation.getComponent(name)
+    assert(type(name) == "string", "tried to get component at invalid name: " .. type(name));
+    assert(self.components[name], "tried to get nonexistent component: " .. name);
+
+    -- return the component that we want
+    return self.components[name];
 end
 
 function Milos_Grid_Implementation.update(dt)
