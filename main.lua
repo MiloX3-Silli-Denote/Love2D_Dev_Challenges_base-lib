@@ -1,7 +1,7 @@
 require("base_engine");
 require("simpleShaderLoading").init();
 require("textureSimplifier").init();
-require("SimpleAudio").init();
+require("simpleAudio").init();
 require("milos_grid_implementation").init();
 
 local theVenusProject = {};
