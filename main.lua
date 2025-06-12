@@ -1,7 +1,7 @@
 require("base_engine");
 require("simpleShaderLoading").init();
 require("textureSimplifier").init();
-require("simpleAudio").init();
+require("SimpleAudio").init();
 require("milos_grid_implementation").init();
 
 local theVenusProject = {};
@@ -41,10 +41,10 @@ local function addLetter(filename, x, y, rot)
 end
 
 local function playMenuSong() -- function to play the menus song
-simpleAudio.addSong("mainMenu", 'songs/base_engine/Venus_menu.wav', "stream", "transition") -- adds song
-simpleAudio.setSongLoop("mainMenu", "manual", 3.4, 58.3) -- loops song
-simpleAudio.setSongEffects("mainMenu", {"chorus"}, 0.9) -- effects
-simpleAudio.setSongVolume("mainMenu", 0.3) -- sets volume
+    SimpleAudio.addSong("mainMenu", 'audio/songs/base_engine/Venus_menu.wav', "stream", "transition") -- adds song
+    SimpleAudio.setSongLoop("mainMenu", "manual", 3.4, 58.3) -- loops song
+    SimpleAudio.setSongEffects("mainMenu", {"chorus"}, 0.9) -- effects
+    SimpleAudio.setSongVolume("mainMenu", 0.3) -- sets volume
 end
 
 function love.load()
@@ -84,7 +84,7 @@ end
 function love.update(dt)
     theVenusProject.time = theVenusProject.time + dt; -- keep track of time
 
-    simpleAudio.update(dt) -- does the logic for SimpleAudio
+    SimpleAudio.update(dt) -- does the logic for SimpleAudio
 
     --Camera.translate(50 * dt, 0);
 
