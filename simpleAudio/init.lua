@@ -1,205 +1,179 @@
 --Simple Audio library made by Lsupergame :)
 
--- TODO: ensure structure functions appropriately without unecessary actions
--- TODO: correct system info and song accounting
--- TODO: correct song playing time and direction of values
-
-local path = (...); -- what directory is this library in?
-
 _G.SimpleAudio = {} -- Make library global
 local self = SimpleAudio -- for readability
 
-local errorHandling = require(path .. ".errorHandling") -- requires the error handling script
-
 function SimpleAudio.init() -- an init function thats loaded at the start
-    self.allSongs = {} -- stores the songs
-    self.songCount = 0 -- stores the number of songs since the len of a table isnt affected by the num of keys it has
+    self.loadedSongs = {}; -- keyed list of all song sources
+    self.loadedSfx   = {}; -- keyed list of all loaded sfx sources
 
-    self.allsfx = {} -- all sfx
+    self.activeSongs = {}; -- indexed list of keys to self.loadedSongs
 
-    self.doTransition = false -- flags if trying to do a transition
-    self.doManualLoop = false -- flags if trying to do a manual loop
-
-    -- keep all self. vars in .init()
-    self.newSong   = nil;
-    self.loopsong  = nil;
-    self.loopstart = nil;
-    self.loopend   = nil;
-
-    self.lowestVolume = 0.01; -- lowest allowed volume
+    self.clonedSfx = {}; -- indexed list of sfx clones
 end
 
-function SimpleAudio.insertSong(name, file, songType)
-    self.songCount = self.songCount + 1;
+function SimpleAudio.loadSong(name, filename)
+    assert(type(name) == "string", "cannot load audio to an invalid name: " .. type(name));
+    assert(type(filename) == "string", "tried to load an audio with an invalid type as the filename: " .. type(filename));
+    assert(self.loadedSongs[name] == nil, "tried to load sound into a name that is already in use: " .. name);
+    assert(string.match(filename, "^audio"), "tried to load an audio that is not contained in the 'audio' directory, this is bad practice: " .. filename);
 
-    local song = love.audio.newSource(file, songType);
-
-    self.allSongs[name] = song; -- stores song with a key (i learned it :3)
-
-    --! do we rly want to play it immediately?
-    love.audio.play(song); -- plays the song
+    -- trying to make a source w/ an invalid filename will error anyways so i wont do an assert for it
+    self.loadedSongs[name] = love.audio.newSource(filename, "stream");
 end
 
-function SimpleAudio.transitionUpdate(dt) -- the function that actually does the transition
-    if not self.doTransition then -- never nester ;3
-        return;
-    end
+function SimpleAudio.loadSfx(name, filename)
+    assert(type(name) == "string", "cannot load audio to an invalid name: " .. type(name));
+    assert(type(filename) == "string", "tried to load an audio with an invalid type as the filename: " .. type(filename));
+    assert(self.loadedSfx[name] == nil, "tried to load sound into a name that is already in use: " .. name);
+    assert(string.match(filename, "^audio"), "tried to load an audio that is not contained in the 'audio' directory, this is bad practice: " .. filename);
 
-    local halfDT = dt / 2;
-
-    for k, song in pairs(self.allSongs) do -- im pretty sure (are you sure) that this need to be a loop, if there's multiple songs
-        if k ~= self.newsong then
-            song:setVolume(song:getVolume() - halfDT);
-
-            -- if the other songs's volume is less than the lowest allowed volume, remove them
-            if song:getVolume() <= self.lowestVolume then
-                self.removeSong(k);
-            end
-        else
-            song:setVolume(song:getVolume() + halfDT); -- increase the new song's volume
-        end
-    end
-end
- 
-function SimpleAudio.manualLoopUpdate() -- function that does the manual loop
-    if not self.doManualLoop then -- never nester ;3
-        return;
-    end
-
-    if self.allSongs[self.loopsong]:tell("seconds") >= self.loopend then
-        self.allSongs[self.loopsong]:seek(self.loopstart, "seconds")
-    end
+    -- trying to make a source w/ an invalid filename will error anyways so i wont do an assert for it
+    self.loadedSfx[name] = love.audio.newSource(filename, "static");
 end
 
-function SimpleAudio.addSong(name, file, songType, addType, startPoint) -- function to add a song
-    errorHandling.addSongError(name, file, songType, addType) -- function from error handling script, to check stuff
+function SimpleAudio.unloadSong(name)
+    assert(type(name) == "string", "song name is not a string: " .. type(name));
+    assert(self.loadedSongs[name], "tried to unload a song that does not exist: " .. name);
 
-    if self.songCount < 1 then
-        self.insertSong(name, file, songType)
-    else
-        if addType == 'replace' then -- replaces a song
-            for k, song in pairs(self.allSongs) do
-                self.removeSong(k);
-            end
-
-            self.insertSong(name, file, songType)
-        elseif addType == 'mesh' then -- makes multiple songs play at the same time (doesnt work with manual loops, meaning only the most recent song with manual loop will be looped)
-            self.insertSong(name, file, songType)
-        elseif addType == 'transition' then -- does a smooth transition (not really lol) and then replace the song
-            self.insertSong(name, file, songType)
-
-            self.allSongs[name]:setVolume(0)
-
-            -- transition between songs
-            self.doTransition = true;
-            self.newsong = name;
+    for i = #self.activeSongs, 1, -1 do
+        if self.activeSongs[i] == name then
+            table.remove(self.activeSongs, i);
         end
     end
 
-    if startPoint then -- starts song from specific time mark
-        self.allSongs[name]:seek(startPoint)
-    end
+    self.loadedSongs[name]:stop(); -- just incase
+    self.loadedSongs[name]:release(); -- destroy data
+    self.loadedSongs[name] = nil; -- remove from table
 end
 
-function SimpleAudio.setSongLoop(name, loopType, loopStart, loopEnd) -- function to set a song's loop
-    errorHandling.setSongLoopError(name, loopType, loopStart, loopEnd) -- error handling
+function SimpleAudio.unloadSfx(name)
+    assert(type(name) == "string", "sfx name is not a string: " .. type(name));
+    assert(self.loadedSfx[name], "tried to unload an sfx that does not exist: " .. name);
 
-    if loopType == 'auto' then -- if auto its the basic loop
-        self.allSongs[name]:setLooping(true)
-    elseif loopType == 'manual' then -- if its manual, you can set start and end point
-        -- manually loop song
-        self.doManualLoop = true
-        self.loopsong = name
-        self.loopstart = loopStart
-        self.loopend = loopEnd
-    end
+    self.loadedSfx[name]:stop(); -- just incase
+    self.loadedSfx[name]:release(); -- destroy data
+    self.loadedSfx[name] = nil; -- remove from table
 end
 
-function SimpleAudio.setSongEffects(songname, effects, pitch) -- sets effects to a song
-    errorHandling.setSongEffectsError(songname, effects, pitch) -- error handling
+function SimpleAudio.playSong(name, addType, startPoint)
+    addType = addType or "mesh"; -- default to replacing the song if no 'addType' is given
+    startPoint = startPoint or 0; -- default to starting the song from the begining
 
-    for _, effect in pairs(effects) do
-        love.audio.setEffect(effect, {type = effect})
-        self.allSongs[songname]:setEffect(effect) -- doesnt allow user to control settings of effect. should be fine.
+    assert(type(name) == "string", "song name is not a string: " .. type(name));
+    assert(self.loadedSongs[name], "tried to play a song that does not exist: " .. name);
+
+    if #self.activeSongs > 0 then -- if there are othe rsongs playing
+        if addType == "replace" then
+            for i = #self.activeSongs, 1, -1 do -- loop through all active songs and stop them
+                self.loadedSongs[self.activeSongs[i]]:stop();
+
+                -- for loop goes through the table in reverse allowing for this to be kept inside the for loop
+                table.remove(self.activeSongs, i);
+            end
+        elseif addType ~= "mesh" then
+            error("tried to play a song with an invalid 'addType', only allowed: 'mesh' or 'replace' used: " .. addType);
+        end
     end
 
-    if pitch then
-        self.allSongs[songname]:setPitch(pitch) -- pitch
-    end
+    self.loadedSongs[name]:play(); -- play audio source
+    self.loadedSongs[name]:seek(startPoint);
+
+    table.insert(self.activeSongs, name); -- add to list of currently playing audios
 end
 
-function SimpleAudio.setSongVolume(songname, volume) -- sets the volume of a song
-    errorHandling.setSongVolumeError(songname, volume) -- error handling
-
-    self.allSongs[songname]:setVolume(volume)
-end
-
-function SimpleAudio.getSongPosition(songname) -- returns the position of the song
-    errorHandling.getSongPositionError(songname) -- error handling
-
-    return self.allSongs[songname]:tell("seconds")
-end
-
-function SimpleAudio.removeSong(name) -- removes a song
-    errorHandling.removeSongError(name) -- error handling
-
-    if not self.allSongs[name] then -- never nester
-        return;
-    end
-
-    -- If the song is a manual loop song, disable manual loop
-    if name == self.loopsong then
-        self.doManualLoop = false
-        self.loopsong = nil
-    end
-
-    -- Stop and remove song
-    self.allSongs[name]:stop() -- if you dont stop, it just keeps playing somehow
-    self.allSongs[name] = nil -- set it to nil to delete it
-    self.songCount = self.songCount - 1 -- lower the song count
-end
-
-function SimpleAudio.playsfx(name, file, volume, effects, pitch) -- plays a sound effect
+function SimpleAudio.playSfx(name, volume, pitch, effects) -- plays a sound effect
     pitch = pitch or 1;
     volume = volume or 1;
 
-    errorHandling.playsfxError(name, file, volume, effects, pitch) -- error handling
+    assert(type(name) == "string", "sfx name is not a string: " .. type(name));
+    assert(self.loadedSfx[name], "tried to play sfx that does not exist: " .. name);
 
-    -- add sfx
-    self.allsfx[name] = love.audio.newSource(file, "static");
-    love.audio.play(self.allsfx[name])
+    local clone = self.loadedSfx[name]:clone(); -- clone of the sfx
+    clone:setVolume(volume);
+    clone:setPitch(pitch);
 
-    -- Volume stuff
-    self.allsfx[name]:setVolume(volume)
-
-    -- Effects stuff
-    for k, effect in pairs(effects) do
-        effect.type = effect.type or k;
-
-        love.audio.setEffect(k, effect);
-        self.allsfx[name]:setEffect(k);
-    end
-
-    -- set pitch
-    self.allsfx[name]:setPitch(pitch);
-end
-
-function SimpleAudio.checkActiveSongs() -- checks if songs are active
-    if self.songCount <= 0 then -- never nester ;3
-        return;
-    end
-
-    for k, song in pairs(self.allSongs) do --this is a loop incase there are multiple songs
-        if not song:isPlaying() then -- if the song isnt playing, remove it
-            self.removeSong(k);
+    if effects then
+        for _, v in ipairs(effects) do
+            clone:setEffect(v); -- apply all listed effect to the sfx source
         end
     end
+
+    clone:play(); -- play sfx audio
+
+    table.insert(self.clonedSfx, clone); -- add to list for later data management
 end
 
-function SimpleAudio.update(dt) -- update logic
-    self.checkActiveSongs()
-    self.transitionUpdate(dt)
-    self.manualLoopUpdate()
+function SimpleAudio.setSongLooping(name, looping)
+    assert(type(name) == "string", "Song name is not a string: " .. type(name));
+    assert(self.loadedSongs[name], "Song does not exist: " .. name);
+
+    looping = (looping == nil) or looping;
+
+    self.loadedSongs[name]:setLooping(looping);
+end
+function SimpleAudio.stopSongLooping(name)
+    assert(type(name) == "string", "Song name is not a string: " .. type(name));
+    assert(self.loadedSongs[name], "Song does not exist: " .. name);
+
+    self.loadedSongs[name]:setLooping(false);
+end
+
+function SimpleAudio.createEffect(name, settings)
+    love.audio.setEffect(name, settings);
+end
+
+function SimpleAudio.createEffects(effects)
+    for k, v in pairs(effects) do
+        love.audio.setEffect(k, v);
+    end
+end
+
+function SimpleAudio.setSongEffects(name, effects, pitch) -- sets effects to a song
+    assert(type(name) == 'string', "Song name is not a string");
+    assert(self.loadedSongs[name], "Song does not exist");
+
+    pitch = pitch or 1;
+    self.loadedSongs[name]:setPitch(pitch);
+
+    for _, v in ipairs(effects) do
+        self.loadedSongs[name]:setEffect(v);
+    end
+end
+
+function SimpleAudio.setSongVolume(name, volume) -- sets the volume of a song
+    assert(type(name) == "string", "Song name is not a string: " .. type(name));
+    assert(self.loadedSongs[name], "Song does not exist: " .. name);
+    assert(type(volume) == "number", "volume is not a number: " .. type(volume));
+
+    self.loadedSongs[name]:setVolume(volume);
+end
+
+function SimpleAudio.getSongPosition(name) -- returns the position of the song in seconds
+    assert(type(name) == "string", "Song name is not a string: " .. type(name));
+    assert(self.loadedSongs[name], "Song does not exist: " .. name);
+
+    return self.loadedSongs[name]:tell("seconds");
+end
+
+function SimpleAudio.update()
+    -- remove songs that have finished playing
+    for i = #self.activeSongs, 1, -1 do
+        if not self.loadedSongs[self.activeSongs[i]]:isPlaying() then
+            self.loadedSongs[self.activeSongs[i]]:stop(); -- just in case
+
+            -- allowed to do table.remove because for loop move in reverse through table
+            table.remove(self.activeSongs, i);
+        end
+    end
+
+    -- destroy sfx clones that have stopped playing
+    for i = #self.clonedSfx, 1, -1 do
+        if not self.clonedSfx[i]:isPlaying() then -- if sfx source stopped playing
+            self.clonedSfx[i]:release(); -- destroy data
+            table.remove(self.clonedSfx, i); -- remove from list
+        end
+    end
 end
 
 return SimpleAudio -- returns the script

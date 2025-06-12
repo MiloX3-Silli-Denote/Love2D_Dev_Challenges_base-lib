@@ -41,10 +41,15 @@ local function addLetter(filename, x, y, rot)
 end
 
 local function playMenuSong() -- function to play the menus song
-    SimpleAudio.addSong("mainMenu", 'audio/songs/base_engine/Venus_menu.wav', "stream", "transition") -- adds song
-    SimpleAudio.setSongLoop("mainMenu", "manual", 3.4, 58.3) -- loops song
-    SimpleAudio.setSongEffects("mainMenu", {"chorus"}, 0.9) -- effects
-    SimpleAudio.setSongVolume("mainMenu", 0.3) -- sets volume
+    SimpleAudio.loadSong("mainMenu", "audio/songs/base_engine/Venus_menu.wav"); -- loads the song
+    SimpleAudio.setSongLooping("mainMenu"); -- loops song
+
+    SimpleAudio.createEffect("chorus", {type = "chorus"}); -- create the effects
+    SimpleAudio.setSongEffects("mainMenu", {"chorus"}, 0.9); -- effects
+
+    SimpleAudio.setSongVolume("mainMenu", 0.3); -- sets volume
+
+    SimpleAudio.playSong("mainMenu"); -- play the song
 end
 
 function love.load()

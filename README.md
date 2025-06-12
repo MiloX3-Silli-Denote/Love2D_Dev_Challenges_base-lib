@@ -141,3 +141,16 @@ Chunks can have tiles written to with ```chunk:setTileAt(x, y, tile/tilename);``
 
 #### IMPORTANT:
 Milos_grid_implementation is unfinished and such; its documentation is also unfinished, it is recommended not to use it quite yet; however, it is in a functional state and will be maintained with backwards compatability with the objects and files.
+
+### SimpleAudio
+SimpleAudio is a simple audio handler and loader.
+Create a song with ```SimpleAudio.loadSong(name, filename);``` this will create a "stream" type audio source tagged with the name given, you can use ```SimpleAudio.playSong(name, [addType]);``` to play any song you have loaded. 'addType' can be either: "mesh" to keep other songs playing, or "replace" to stop other playing songs
+you can cause a song to always loop when it ends by calling ```SimpleAudio.setSongLooping(name, [looping]);``` or stop it looping with ```SimpleAudio.stopSongLooping(name);```
+you can also set the volume of a song with ```SimpleAudio.setSongVolume(name, volume);``` or apply effects that you have created with ```SimpleAudio.createEffect(name, settings);``` or ```SimpleAudio.createEffects(effect);``` (effects is a keyed list of the settings where the key is the name of the effect), using ```SimpleAudio.setSongEffects(name, effects, [pitch]);```
+if a song is playing then you can get its position (in seconds) with ```SimpleAudio.getSongPosition(name);```
+
+SimpleAudio also handles sfx using "static" type audio sources like so:
+load an sfx with ```SimpleAudio.loadSfx(name, filename);``` and play it with: ```SimpleAudio.playSfx(name, [volume, pitch, effects]);```
+Note that playing an sfx will create a clone of it and play the clone so you are allowed to have multiple instances of that audio playing at any given time, all with unique volumes, pitches, and effects.
+
+to unload a song or sfx you can call ```SimpleAudio.unloadSong(name);``` or ```SimpleAudio.unloadSfx(name);```
